@@ -7,6 +7,9 @@ const staticURL = 'https://pokeapi.co/api/v2/pokemon/';
 
 const makerPage = async (req, res) => {
   res.render('app');
+};
+
+const loadData = () => {
   for (let i = 1; i < 1026; i++) {
     fetch(`${staticURL + i}/`)
       .then((response) => response.json())
@@ -17,7 +20,10 @@ const makerPage = async (req, res) => {
   }
 };
 
+loadData();
+
 const makePokemon = async (req, res) => {
+  console.log(req)
   let selectedPkmn;
 
   if (!req.body.name || !req.body.level) {
@@ -26,8 +32,12 @@ const makePokemon = async (req, res) => {
 
   // if there is no pokemon existing with the name input
   if (!pokemonList.map((pkmn) => pkmn.name).includes(req.body.name.toLowerCase())) {
-    console.log('none!');
     return res.status(400).json({ error: 'Not a valid Pokemon!' });
+  }
+
+  // if level is over 100
+  if (req.body.level > 100) {
+    return res.status(400).json({ error: 'Level too high!' });
   }
 
   pokemonList.forEach((pkmn) => {
@@ -37,9 +47,10 @@ const makePokemon = async (req, res) => {
   });
 
   const pokemonData = {
-    name: req.body.name,
+    name: req.body.name.toLowerCase(),
     level: req.body.level,
     dexNum: selectedPkmn.id,
+    abilities: selectedPkmn.abilities.map((ability) => ability.ability.name),
     owner: req.session.account._id,
   };
 
@@ -50,6 +61,8 @@ const makePokemon = async (req, res) => {
       name: newPokemon.name,
       level: newPokemon.level,
       dexNum: newPokemon.dexNum,
+      abilities: newPokemon.abilities,
+      _id: newPokemon.id,
     });
   } catch (err) {
     console.log(err);
@@ -60,10 +73,20 @@ const makePokemon = async (req, res) => {
   }
 };
 
+const deletePokemon = async (req, res) => {
+  console.log(req)
+  Pokemon.deleteOne({ _id: req.body.id }).then(() => {
+    console.log('deleted');
+  }).catch(() => {
+    console.log('error deleting Pokemon');
+  });
+  return res.status(200).json({message: "success"});
+};
+
 const getPokemon = async (req, res) => {
   try {
     const query = { owner: req.session.account._id };
-    const docs = await Pokemon.find(query).select('name level dexNum').lean().exec();
+    const docs = await Pokemon.find(query).select('name level dexNum abilities').lean().exec();
 
     return res.json({ pokemon: docs });
   } catch (err) {
@@ -74,6 +97,8 @@ const getPokemon = async (req, res) => {
 
 module.exports = {
   makerPage,
+  loadData,
   makePokemon,
   getPokemon,
+  deletePokemon,
 };

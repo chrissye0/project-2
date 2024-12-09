@@ -20,6 +20,10 @@ const PokemonSchema = new mongoose.Schema({
     min: 1,
     required: true,
   },
+  abilities: {
+    type: [String],
+    required: false,
+  },
   owner: {
     type: mongoose.Schema.ObjectId,
     required: true,
@@ -35,6 +39,8 @@ PokemonSchema.statics.toAPI = (doc) => ({
   name: doc.name,
   level: doc.level,
   dexNum: doc.dexNum,
+  abilities: doc.abilities,
+  id: doc._id,
 });
 
 const PokemonModel = mongoose.model('Pokemon', PokemonSchema);

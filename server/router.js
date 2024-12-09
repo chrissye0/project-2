@@ -14,7 +14,14 @@ const router = (app) => {
   app.get('/maker', mid.requiresLogin, controllers.Pokemon.makerPage);
   app.post('/maker', mid.requiresLogin, controllers.Pokemon.makePokemon);
 
+  app.get('/delete', mid.requiresLogin, controllers.Pokemon.makerPage);
+  app.post('/delete', mid.requiresLogin, controllers.Pokemon.deletePokemon);
+
   app.get('/', mid.requiresSecure, mid.requiresLogout, controllers.Account.loginPage);
+
+  app.get('*', (req, res) => {
+    res.status(404).send("Error 404 - Page does not exist");
+  });
 };
 
 module.exports = router;
