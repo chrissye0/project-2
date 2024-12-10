@@ -20,7 +20,7 @@ const router = (app) => {
   app.get('/', mid.requiresSecure, mid.requiresLogout, controllers.Account.loginPage);
 
   app.get('*', (req, res) => {
-    res.status(404).send("Error 404 - Page does not exist");
+    res.status(404).send('Error 404 - Page does not exist');
   });
 };
 

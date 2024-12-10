@@ -2,20 +2,24 @@ const helper = require('./helper.js');
 const React = require('react');
 const { useState, useEffect, createContext, useContext } = React;
 const { createRoot } = require('react-dom/client');
+const { Checkbox, FormControlLabel, TextField, Button, InputLabel, Select, MenuItem, Typography } = require('@mui/material');
 
+// for referencing premium state across multiple components
 const PremiumContext = createContext(null);
-
-const ModeDisplay = (props) => {
-    if (props.checked) {
-        return <div> Mode: Premium</div>
-    } else return <div> Mode: Basic </div>
-};
+// for determining if the team is full is not
 let pokeMax = false;
 
+// component for displaying the current mode (basic or premium)
+const ModeDisplay = (props) => {
+    if (props.checked) {
+        return <div id="modeDisplay"><Typography variant="h6">Mode: Premium</Typography></div>
+    } else return <div id="modeDisplay"><Typography variant="h6">Mode: Basic</Typography></div>
+};
+
+// handlePokemon - called when the pokemon form is submitted - check fields and pokemon count, then send post
 const handlePokemon = (e, onPokemonAdded) => {
     e.preventDefault();
     helper.hideError();
-    console.log(e.target.action);
     const name = e.target.querySelector('#pokemonName').value;
     const level = e.target.querySelector('#pokemonLevel').value;
     if (pokeMax) {
@@ -31,6 +35,7 @@ const handlePokemon = (e, onPokemonAdded) => {
     return false;
 }
 
+// handleDelete - called when a user chooses to delete a pokemon, send post with ID data
 const handleDelete = (e, onPokemonDeleted, pokemon) => {
     e.preventDefault();
     helper.hideError();
@@ -39,6 +44,7 @@ const handleDelete = (e, onPokemonDeleted, pokemon) => {
     return false;
 }
 
+// component with form for submitting pokemon details (pokemon name and level)
 const PokemonForm = (props) => {
     return (
         <form id="pokemonForm"
@@ -48,29 +54,36 @@ const PokemonForm = (props) => {
             method="POST"
             className="pokemonForm"
         >
-            <label htmlFor="name">Pokemon: </label>
-            <input id="pokemonName" type="text" name="name" placeholder="Pokemon Name" />
-            <label htmlFor="level">Level: </label>
-            <input id="pokemonLevel" type="number" min="1" name="level" />
-            <input className="makePokemonSubmit" type="submit" value="Make Pokemon" />
+            <TextField id="pokemonName" type="text" name="name" label="Pokemon" />
+            <TextField id="pokemonLevel" type="number" min="1" name="level" label="Level" />
+            <Button variant="contained" className="makePokemonSubmit" type="submit">Make Pokemon</Button>
         </form>
     );
 };
 
+// component for ability select with dynamically created ability options
 const AbilitySelect = (props) => {
     const [selectedAbility, setAbility] = useState('');
     return (
-        <select value={selectedAbility} onChange={e => setAbility(e.target.value)}>
-            {props.abilities.map(ability =>
-                (<option value={ability}> {ability} </option>))};
-        </select>
+        <>
+            <InputLabel id="ability">Ability</InputLabel>
+            <Select labelId="ability"
+                id="abilityInput"
+                value={selectedAbility}
+                label="Ability"
+                onChange={e => setAbility(e.target.value)}>
+                {props.abilities.map(ability =>
+                    (<MenuItem value={ability}> {ability} </MenuItem>))};
+            </Select>
+        </>
     )
 };
 
+// component for displaying all pokemon
 const PokemonList = (props) => {
     const [pokemon, setPokemon] = useState(props.pokemon);
     const checked = useContext(PremiumContext);
-
+    // load all pokemon and set
     useEffect(() => {
         const loadPokemonFromServer = async () => {
             const response = await fetch('/getPokemon');
@@ -79,43 +92,41 @@ const PokemonList = (props) => {
         };
         loadPokemonFromServer();
     }, [props.reloadPokemon]);
-
+    // if no pokemon yet
     if (pokemon.length === 0) {
         return (
             <div className="pokemonList">
-                <h3 className="emptyPokemon">No Pokemon Yet!</h3>
+                <Typography variant="h3">No Pokemon yet!</Typography>
             </div>
         );
     }
-
+    // if above max, change pokeMax variable to true
     if (pokemon.length > 5) {
         pokeMax = true;
     }
-
+    // turn each pokemon into a div with a form
     const pokemonNodes = pokemon.map(pkmn => {
         return (
-            <div key={pkmn._id} className="pkmn">
-                <form
-                    onSubmit={(e) => {
-                        handleDelete(e, props.triggerReload, pkmn);
-                        window.location.reload();
-                    }
-                    }
-                    name="pokemonDeleteForm"
-                    action="/delete"
-                    method="POST"
-                    className="pokemonForm">
-                    <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pkmn.dexNum}.png`} alt="pokemon sprite" className="sprite" />
-                    <h3 className="pokemonName">{pkmn.name.toUpperCase()}</h3>
-                    <h3 className="pokemonLevel">Level: {pkmn.level}</h3>
-                    <div className="ability" style={{ visibility: checked ? "visible" : "hidden" }}>
-                        <h3 className="pokemonAbility">Ability:
-                            <AbilitySelect abilities={pkmn.abilities} />
-                        </h3>
-                    </div>
-                    <button type="submit">Delete</button>
-                </form>
-            </div>
+            <form
+                onSubmit={(e) => {
+                    handleDelete(e, props.triggerReload, pkmn);
+                    window.location.reload();
+                }
+                }
+                name="pokemonDeleteForm"
+                action="/delete"
+                method="POST"
+                className="pokemon">
+                <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pkmn.dexNum}.png`} alt="pokemon sprite" className="sprite" />
+                <div id="pokemonInfo">
+                    <Typography variant="subtitle1" className="pokemonName">{pkmn.name.toUpperCase()}</Typography>
+                    <Typography variant="subtitle2" className="pokemonLevel">Level: {pkmn.level}</Typography>
+                </div>
+                <div className="ability" style={{ visibility: checked ? "visible" : "hidden" }}>
+                    <AbilitySelect abilities={pkmn.abilities} />
+                </div>
+                <Button variant="outlined" type="submit" color="error" id="deleteButton">Delete</Button>
+            </form>
         );
     });
     return (
@@ -125,11 +136,11 @@ const PokemonList = (props) => {
     );
 };
 
+// component for displaying form and pokemon list
 const PokemonTeam = () => {
     const [reloadPokemon, setReloadPokemon] = useState(false);
     return (
         <>
-            <h1>Team</h1>
             <div id="makePokemon">
                 <PokemonForm triggerReload={() => setReloadPokemon(!reloadPokemon)} />
             </div>
@@ -144,20 +155,16 @@ const App = () => {
     const [checked, setChecked] = useState(false);
     return (
         <PremiumContext.Provider value={checked}>
-            <label>
-                <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(e) => {
-                        setChecked(e.target.checked)
-                    }}
-                />
-                Premium
-            </label>
+            <FormControlLabel control={<Checkbox
+                checked={checked}
+                onChange={(e) => {
+                    setChecked(e.target.checked)
+                }}
+                color="success"/>} label="Premium" id="premiumCheckbox" />
             <br />
             <ModeDisplay checked={checked} />
             <br />
-            {<PokemonTeam />}
+            <PokemonTeam />
         </PremiumContext.Provider>
     )
 };

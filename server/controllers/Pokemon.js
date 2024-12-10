@@ -9,6 +9,7 @@ const makerPage = async (req, res) => {
   res.render('app');
 };
 
+// fetch data from Pokemon API and add all to pokemonList array
 const loadData = () => {
   for (let i = 1; i < 1026; i++) {
     fetch(`${staticURL + i}/`)
@@ -23,29 +24,26 @@ const loadData = () => {
 loadData();
 
 const makePokemon = async (req, res) => {
-  console.log(req)
   let selectedPkmn;
-
+  // if no name or no level
   if (!req.body.name || !req.body.level) {
     return res.status(400).json({ error: 'Both name and level are required!' });
   }
-
   // if there is no pokemon existing with the name input
   if (!pokemonList.map((pkmn) => pkmn.name).includes(req.body.name.toLowerCase())) {
     return res.status(400).json({ error: 'Not a valid Pokemon!' });
   }
-
   // if level is over 100
   if (req.body.level > 100) {
     return res.status(400).json({ error: 'Level too high!' });
   }
-
+  // loop through all existing pokemon in API
+  // and set selectedPkmn to Pokemon with the same name as user input
   pokemonList.forEach((pkmn) => {
     if (req.body.name.toLowerCase() === pkmn.name) {
       selectedPkmn = pkmn;
     }
   });
-
   const pokemonData = {
     name: req.body.name.toLowerCase(),
     level: req.body.level,
@@ -53,7 +51,7 @@ const makePokemon = async (req, res) => {
     abilities: selectedPkmn.abilities.map((ability) => ability.ability.name),
     owner: req.session.account._id,
   };
-
+  // make Pokemon model
   try {
     const newPokemon = new Pokemon(pokemonData);
     await newPokemon.save();
@@ -73,16 +71,16 @@ const makePokemon = async (req, res) => {
   }
 };
 
+// delete Pokemon from DB according to their ID
 const deletePokemon = async (req, res) => {
-  console.log(req)
   Pokemon.deleteOne({ _id: req.body.id }).then(() => {
-    console.log('deleted');
   }).catch(() => {
-    console.log('error deleting Pokemon');
+    console.log('Error deleting Pokemon');
   });
-  return res.status(200).json({message: "success"});
+  return res.status(200).json({ message: 'success' });
 };
 
+// retrieve pokemon and return json
 const getPokemon = async (req, res) => {
   try {
     const query = { owner: req.session.account._id };
