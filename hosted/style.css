@@ -100,11 +100,12 @@ nav:nth-child(1) {
 }
 
 .pokemonList {
-    margin: 30px 0px;
+    margin: 0px 60px;
+    padding-top: 20px;
 }
 
 .pokemon {
-    margin: 30px 60px;
+    margin: 30px 0px;
     padding: 20px;
     display: flex;
     gap: 40px;
