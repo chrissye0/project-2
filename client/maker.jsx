@@ -81,6 +81,7 @@ const AbilitySelect = (props) => {
 
 // component for displaying all pokemon
 const PokemonList = (props) => {
+    const imgURL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
     const [pokemon, setPokemon] = useState(props.pokemon);
     const checked = useContext(PremiumContext);
     // load all pokemon and set
@@ -117,7 +118,7 @@ const PokemonList = (props) => {
                 action="/delete"
                 method="POST"
                 className="pokemon">
-                <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pkmn.dexNum}.png`} alt="pokemon sprite" className="sprite" />
+                <img src={`${imgURL}${pkmn.dexNum}.png`} alt="pokemon sprite" className="sprite" />
                 <div id="pokemonInfo">
                     <Typography variant="subtitle1" className="pokemonName">{pkmn.name.toUpperCase()}</Typography>
                     <Typography variant="subtitle2" className="pokemonLevel">Level: {pkmn.level}</Typography>

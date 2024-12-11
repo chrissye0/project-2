@@ -3,7 +3,7 @@ const models = require('../models');
 const { Pokemon } = models;
 
 const pokemonList = [];
-const staticURL = 'https://pokeapi.co/api/v2/pokemon/';
+const staticURL = process.env.POKEMON_API || 'https://pokeapi.co/api/v2/pokemon/';
 
 const makerPage = async (req, res) => {
   res.render('app');
@@ -77,7 +77,7 @@ const deletePokemon = async (req, res) => {
   }).catch(() => {
     console.log('Error deleting Pokemon');
   });
-  return res.status(200).json({ message: 'success' });
+  return res.status(204);
 };
 
 // retrieve pokemon and return json
