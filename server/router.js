@@ -1,6 +1,7 @@
 const controllers = require('./controllers');
 const mid = require('./middleware');
 
+// get/post requests for different pages
 const router = (app) => {
   app.get('/getPokemon', mid.requiresLogin, controllers.Pokemon.getPokemon);
 
